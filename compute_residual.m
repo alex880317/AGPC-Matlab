@@ -32,9 +32,11 @@ function error_star = compute_residual(se3, measurement)
 
     tau_initial = [initial_theta; initial_phi; initial_d_k_prime];
 
-    % 計算殘差
-    error = tau_measured - tau_initial;
+    % % 計算殘差
+    % error = tau_measured - tau_initial;
+    % 
+    % % 返回 2 維的誤差向量
+    % error_star = error(2:3); % 我們只取俯仰角和距離部分
 
-    % 返回 2 維的誤差向量
-    error_star = error(2:3); % 我們只取俯仰角和距離部分
+    error_star = tau_measured - tau_initial;
 end
