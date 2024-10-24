@@ -20,8 +20,8 @@ function H = compute_jacobian(se3, measurement)
 
     epsilon = 1e-6; % 避免分母為零的情況
     if abs(denominator) < epsilon
-        H_left = [-measuredNormal_W(2) / ((measuredNormal_W(1))^2 + (measuredNormal_W(2))^2), ...
-                  measuredNormal_W(1) / ((measuredNormal_W(1))^2 + (measuredNormal_W(2))^2), ...
+        H_left = [0, ...
+                  0, ...
                   0, 0;
                   0, 0, 0, 0;
                   0, 0, 0, 1];
@@ -41,14 +41,22 @@ function H = compute_jacobian(se3, measurement)
 
     so3 = se3(4:6); % 提取旋轉部分
     rho = se3(1:3);   % 提取平移部分
+    
 
-    % 提取旋轉軸 (單位向量)
-    a = so3 / norm(so3); % 單位旋轉軸向量
-    a_hat = skew_symmetric(a);
-    angle = norm(so3); % 旋轉角度 (弧度)
+    if norm(so3) < epsilon
+        J = eye(3);
+    else
+        
 
-    % 計算 J (使用 Rodriguez 公式)
-    J = (sin(angle) / angle) * eye(3) + (1 - sin(angle) / angle) * (a * a') + ((1 - cos(angle)) / angle) * a_hat;
+        % 提取旋轉軸 (單位向量)
+        a = so3 / norm(so3); % 單位旋轉軸向量
+        a_hat = skew_symmetric(a);
+        angle = norm(so3); % 旋轉角度 (弧度)
+
+        % 計算 J (使用 Rodriguez 公式)
+        J = (sin(angle) / angle) * eye(3) + (1 - sin(angle) / angle) * (a * a') + ((1 - cos(angle)) / angle) * a_hat;
+    end
+    
 
     J_rho_diff = calculate_J_rho_diff(rho, so3);
 

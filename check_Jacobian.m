@@ -4,12 +4,12 @@ close all;
 % 參考法向量與距離
 Gx = 0;Gy = 0;Gz = 1;
 Gk = [Gx; Gy; Gz];
-measuredNormal = roty(1) * rotx(1) * Gk;  % 地面法向量 (參考)
+measuredNormal = roty(0) * rotx(0) * Gk;  % 地面法向量 (參考)
 measuredDistance = 0.12;        % 參考的地面距離
 measurement = [measuredNormal; measuredDistance];
 
 % 初始化位姿
-R_k = roty(2) * rotx(2);
+R_k = roty(5) * rotx(5);
 t_k = [10, 10, 5]';
 pose = [R_k, t_k; 0, 0, 0, 1];
 

@@ -1,9 +1,20 @@
 clear; clc; close all;
 
+%% para set
 % 參數設定
-max_iterations = 1;   % 最大迭代次數
-tolerance = 1e-6;       % 終止條件的容忍度
+max_iterations = 2;   % 最大迭代次數
+tolerance = 1e-4;       % 終止條件的容忍度
 
+% 儲存每次迭代的狀態變數和殘差
+global residual_history r1_history r2_history r3_history x_history;
+residual_history = [];
+r1_history = [];
+r2_history = [];
+r3_history = [];
+x_history = [];
+
+
+%% initial value
 % 參考法向量與距離
 measuredNormal = roty(1) * rotx(1) * [0; 0; 1];  % 地面法向量 (參考)
 measuredDistance = 0.12;        % 參考的地面距離
@@ -25,28 +36,34 @@ se3_normalized = se3; % 初始化標準化後的向量
 se3_normalized(1:3) = se3(1:3) * scale_translation; % 平移項縮放
 se3_normalized(4:6) = se3(4:6) * scale_rotation;    % 旋轉項保持不變
 
-% 儲存每次迭代的狀態變數和殘差
-global residual_history r1_history r2_history r3_history x_history;
-residual_history = [];
-r1_history = [];
-r2_history = [];
-r3_history = [];
-x_history = [];
 
+
+
+
+
+%% optimal
 % 設置 fmincon 選項，將 measurement 傳遞給 outputFcn
-options = optimoptions('fmincon', 'OutputFcn', @(x,optimValues,state) outputFcn(x, optimValues, state, measurement), 'Display', 'iter', 'MaxIterations', max_iterations, 'TolFun', 1e-4, 'Algorithm', 'sqp', 'GradObj', 'off');
+options = optimoptions('fmincon', 'OutputFcn', @(x,optimValues,state) outputFcn(x, optimValues, state, measurement), ...
+                       'Display', 'iter', 'MaxIterations', max_iterations, 'TolFun', tolerance, 'Algorithm', 'sqp', ...
+                       'GradObj', 'off');
 
 % 調用 fmincon 進行優化
 [x, fval, exitflag, output, lamda, grad, hessian] = fmincon(@(x) compute_cost(compute_residual(x, measurement)), se3_normalized, [], [], [], [], [], [], [], options);
 
-% 顯示優化後的位姿
-disp('優化後的位姿：');
-disp(x);
+% % 顯示優化後的位姿
+% disp('優化後的位姿：');
+% disp(x);
+% 
+% % 顯示所有的殘差歷史
+% disp('所有迭代中的殘差平方和歷史：');
+% disp(residual_history);
 
-% 顯示所有的殘差歷史
-disp('所有迭代中的殘差平方和歷史：');
-disp(residual_history);
 
+
+
+
+
+%% draw
 % 繪製殘差 r1, r2, r3 和殘差平方和的圖
 iterations = 1:length(residual_history);
 figure;
@@ -70,6 +87,21 @@ title('State Variable (x) Over Iterations');
 legend('x1','x2','x3','x4','x5','x6'); % 顯示狀態變數的圖例
 grid on;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% suport function
 % 定義輸出函數來顯示每次迭代的殘差和記錄狀態變數
 function stop = outputFcn(x, optimValues, state, measurement)
     global residual_history r1_history r2_history r3_history x_history;
@@ -101,9 +133,9 @@ function stop = outputFcn(x, optimValues, state, measurement)
     % 儲存殘差平方和到歷史記錄
     residual_history = [residual_history; cost];
     
-    % 顯示每個殘差分量和平方和
-    fprintf('迭代 %d, r1: %f, r2: %f, r3: %f, 殘差平方和: %f\n', ...
-            optimValues.iteration, r1, r2, r3, cost);
+    % % 顯示每個殘差分量和平方和
+    % fprintf('迭代 %d, r1: %f, r2: %f, r3: %f, 殘差平方和: %f\n', ...
+    %         optimValues.iteration, r1, r2, r3, cost);
     
     stop = false; % 繼續迭代
 end
