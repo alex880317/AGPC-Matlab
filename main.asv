@@ -2,8 +2,7 @@ clear; clc; close all;
 
 % 參數設定
 max_iterations = 1000;   % 最大迭代次數
-tolerance = 1e-4;       % 終止條件的容忍度
-state = [];
+tolerance = 1e-6;       % 終止條件的容忍度
 
 % 參考法向量與距離
 measuredNormal = roty(1) * rotx(1) * [0; 0; 1];  % 地面法向量 (參考)
@@ -18,9 +17,6 @@ pose = [R_k, t_k; 0, 0, 0, 1];
 se3 = se3LieGroup2LieAlgebra(pose);
 
 % 定義尺度因子
-% 宣告全域變數
-global scale_translation;
-global scale_rotation;
 scale_translation = 1; % 將平移項縮放到 1/10 的大小
 scale_rotation = 1;    % 旋轉項保持不變
 
@@ -62,8 +58,7 @@ for iter = 1:max_iterations
     se3_normalized = se3LieGroup2LieAlgebra(SE3);
 
     %% record state
-    currentState = convertState(se3_normalized);
-    state = [state; currentState];
+    state = [state; ];
 
     % 檢查終止條件
     if norm(delta_pose) < tolerance
@@ -83,32 +78,5 @@ SE3_opt = se3LieAlgebra2LieGroup(se3_unnormalized);
 
 disp('優化後的位姿：');
 disp(SE3_opt);
-
-
-% 繪製每次迭代中的狀態變數 x 的歷史變化
-iterations = 1:length(state);
-f2 = figure(2);
-plot(iterations, state, '-o', 'LineWidth', 2);
-plot_set_size(f2.Children, 15, 25, 20, 20, 2);
-plot_set_text(f2.Children, "State Variable (x) Over Iterations", ...
-              {"Iteration", "State Variable x"}, {'x1','x2','x3','x4','x5','x6'});
-grid on;
-
-
-
-function state = convertState(se3)
-    global scale_translation scale_rotation;
-
-    % 逆標準化
-    se3_unnormalized = se3;
-    se3_unnormalized(1:3) = se3(1:3) / scale_translation; % 恢復平移項
-    se3_unnormalized(4:6) = se3(4:6) / scale_rotation;    % 恢復旋轉項
-
-    % change to eular angle and translation
-    SE3 = se3LieAlgebra2LieGroup(se3_unnormalized);
-    eul = rotm2eul(SE3(1:3, 1:3));
-    state = [SE3(1:3, 4)', eul];
-
-end
 
 

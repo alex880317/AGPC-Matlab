@@ -14,6 +14,7 @@ function error_star = compute_residual(se3, measurement)
 
     % 計算法向量在世界坐標系中的表示
     measuredNormal_W = R_k_W * G_k;
+    % measuredNormal_W = [0, 0, 1]';
 
     % 計算 tau_measured 的參數化
     theta = atan2(measuredNormal_W(2), measuredNormal_W(1)); % 方位角
@@ -25,6 +26,7 @@ function error_star = compute_residual(se3, measurement)
     % 初始參數化
     initialNormal = [0; 0; 1];
     initialDistance = 0.12;
+    % initialDistance = 1.78;
 
     initial_theta = atan2(initialNormal(2), initialNormal(1));
     initial_phi = acos(initialNormal(3) / norm(initialNormal(1:3)));
